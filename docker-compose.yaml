@@ -1,0 +1,46 @@
+version: '3.8'
+
+volumes:
+  backend_node_modules:
+  client_node_modules:
+  redis_data:
+
+
+services:
+  redis:
+    container_name: redis
+    image: redis:alpine
+    ports:
+      - "6379:6379"
+    restart: unless-stopped
+    volumes:
+      - redis_data:/data
+
+  backend:
+    container_name: backend
+    build:
+      context: ./server
+    ports:
+      - "3500:3500"
+    environment:
+      - "NODE_ENV=dev"
+      - "PORT=3500"
+    volumes:
+      - ./server/:/opt/app
+      - backend_node_modules/:/opt/app/node_modules
+    restart: unless-stopped
+
+  client:
+    container_name: client
+    build:
+      context: ./client
+    ports:
+      - "9090:9090"
+    environment:
+      - "NODE_ENV=dev"
+      - "PORT=9090"
+      - "BACKEND_HOST=backend:3500"
+    volumes:
+      - ./client/:/opt/app
+      - client_node_modules/:/opt/app/node_modules
+    restart: unless-stopped
